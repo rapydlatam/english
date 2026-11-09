@@ -3,8 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#12161c" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#f3f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" id="themeColor" content="#0e0f13">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,39 +12,103 @@
 <title>Session Coach</title>
 <style>
 :root{
-  --bg:#12161c; --surface:#1a2029; --surface2:#222a35; --line:#2b3441;
-  --text:#e4e8ed; --muted:#8f9aa8;
-  --accent:#7cb7c9; --accent-ink:#0e1a1f;
-  --good:#93c2a2; --fix:#d9a37c; --note:#a9a6d6;
-  --rec:#d98c8c;
+  --bg:#0e0f13; --surface:#16171d; --surface2:#1f212a; --line:#2a2d38;
+  --text:#e8e9ee; --muted:#8f93a5;
+  --accent:#5a64d6; --accent-ink:#ffffff; --link:#a3abf7;
+  --good:#7bd0a0; --fix:#e8aa72; --note:#b8acf2; --rec:#ea8a82;
   --r-lg:22px; --r-md:14px; --r-sm:9px;
-  --font: "Manrope", ui-sans-serif, -apple-system, "SF Pro Text", system-ui, sans-serif;
+  --font: ui-sans-serif, -apple-system, "SF Pro Text", system-ui, "Segoe UI", sans-serif;
 }
-@media (prefers-color-scheme: light){
-  :root{
-    --bg:#f3f5f7; --surface:#ffffff; --surface2:#e9edf1; --line:#d9dfe6;
-    --text:#1d2530; --muted:#667385;
-    --accent:#2f7f95; --accent-ink:#ffffff;
-    --good:#3e8a5a; --fix:#a8672f; --note:#5d59a8; --rec:#b85c5c;
-  }
+[data-theme="midnight"][data-scheme="dark"]{
+  --bg:#0e0f13; --surface:#16171d; --surface2:#1f212a; --line:#2a2d38;
+  --text:#e8e9ee; --muted:#8f93a5;
+  --accent:#5a64d6; --accent-ink:#ffffff; --link:#a3abf7;
+  --good:#7bd0a0; --fix:#e8aa72; --note:#b8acf2; --rec:#ea8a82;
 }
-/* Warm theme: soft paper tones with a calm green accent */
-:root[data-theme="warm"]{
+[data-theme="midnight"][data-scheme="light"]{
+  --bg:#f6f7f9; --surface:#ffffff; --surface2:#eceef3; --line:#dde0e8;
+  --text:#14151a; --muted:#5f6576;
+  --accent:#5560d0; --accent-ink:#ffffff; --link:#4650b8;
+  --good:#2a8456; --fix:#a0541c; --note:#6550c6; --rec:#b3443b;
+}
+[data-theme="mono"][data-scheme="dark"]{
+  --bg:#050505; --surface:#101010; --surface2:#1b1b1b; --line:#2b2b2b;
+  --text:#ededed; --muted:#9a9a9a;
+  --accent:#ededed; --accent-ink:#0a0a0a; --link:#ededed;
+  --good:#5fd3a0; --fix:#f2a65e; --note:#a9b2ff; --rec:#ff8080;
+}
+[data-theme="mono"][data-scheme="light"]{
+  --bg:#fafafa; --surface:#ffffff; --surface2:#f0f0f0; --line:#e3e3e3;
+  --text:#0a0a0a; --muted:#636363;
+  --accent:#0a0a0a; --accent-ink:#ffffff; --link:#0a0a0a;
+  --good:#17784a; --fix:#9f5400; --note:#5646d4; --rec:#bd3228;
+}
+[data-theme="aurora"][data-scheme="dark"]{
+  --bg:#0a1226; --surface:#111c38; --surface2:#192747; --line:#263459;
+  --text:#e7ecf8; --muted:#93a1c4;
+  --accent:#6059ee; --accent-ink:#ffffff; --link:#aaa5ff;
+  --good:#62d8a8; --fix:#f2b36d; --note:#bdadff; --rec:#f48e8e;
+}
+[data-theme="aurora"][data-scheme="light"]{
+  --bg:#f6f9fc; --surface:#ffffff; --surface2:#eaf0f7; --line:#dae3ee;
+  --text:#0a2540; --muted:#556683;
+  --accent:#5a52e8; --accent-ink:#ffffff; --link:#4a42d6;
+  --good:#0f7d59; --fix:#9f5400; --note:#6654d1; --rec:#be3f39;
+}
+[data-theme="sunny"][data-scheme="dark"]{
+  --bg:#1a1a17; --surface:#242421; --surface2:#2e2e2a; --line:#3b3b35;
+  --text:#f3efe3; --muted:#a09b8a;
+  --accent:#ffe450; --accent-ink:#20201e; --link:#ffe450;
+  --good:#86c9a0; --fix:#e8ac82; --note:#bbb5e8; --rec:#e8978b;
+}
+[data-theme="sunny"][data-scheme="light"]{
+  --bg:#fbf8ef; --surface:#ffffff; --surface2:#f2eddc; --line:#e6dfcb;
+  --text:#20201e; --muted:#67624f;
+  --accent:#ffe450; --accent-ink:#20201e; --link:#6e5400;
+  --good:#2b7a4e; --fix:#9f4f1d; --note:#5b54a3; --rec:#ad4034;
+}
+[data-theme="ocean"][data-scheme="dark"]{
+  --bg:#12161c; --surface:#1a2029; --surface2:#222a35; --line:#2b3441;
+  --text:#e4e8ed; --muted:#93a0ae;
+  --accent:#7cb7c9; --accent-ink:#0e1a1f; --link:#7cb7c9;
+  --good:#93c2a2; --fix:#dba67f; --note:#aeabdb; --rec:#de9292;
+}
+[data-theme="ocean"][data-scheme="light"]{
+  --bg:#f3f5f7; --surface:#ffffff; --surface2:#e9edf1; --line:#d9dfe6;
+  --text:#1d2530; --muted:#5f6d80;
+  --accent:#2a788d; --accent-ink:#ffffff; --link:#2a788d;
+  --good:#37815a; --fix:#a0602a; --note:#5d59a8; --rec:#b25555;
+}
+[data-theme="forest"][data-scheme="dark"]{
+  --bg:#1b1a16; --surface:#25231e; --surface2:#2f2c26; --line:#3a372f;
+  --text:#ede9dd; --muted:#a09a8a;
+  --accent:#7cc49c; --accent-ink:#10231a; --link:#7cc49c;
+  --good:#7cc49c; --fix:#e0a878; --note:#b3aee0; --rec:#e09488;
+}
+[data-theme="forest"][data-scheme="light"]{
   --bg:#f1efe5; --surface:#fbf9f3; --surface2:#ebe8db; --line:#ddd9c9;
-  --text:#1f1d18; --muted:#6a655a;
-  --accent:#2b7352; --accent-ink:#ffffff;
+  --text:#1f1d18; --muted:#665f54;
+  --accent:#2b7352; --accent-ink:#ffffff; --link:#2b7352;
   --good:#2b7352; --fix:#9f541e; --note:#6258a0; --rec:#b04a3a;
-  --r-lg:26px; --r-md:18px; --r-sm:12px;
-  --font: ui-rounded, "SF Pro Rounded", "Nunito", ui-sans-serif, -apple-system, system-ui, sans-serif;
 }
-@media (prefers-color-scheme: dark){
-  :root[data-theme="warm"]{
-    --bg:#1b1a16; --surface:#25231e; --surface2:#2f2c26; --line:#3a372f;
-    --text:#ede9dd; --muted:#9c9686;
-    --accent:#7cc49c; --accent-ink:#10231a;
-    --good:#7cc49c; --fix:#e0a878; --note:#b3aee0; --rec:#e09488;
-  }
-}
+/* Per-palette shape and type */
+[data-theme="mono"]{--r-lg:14px;--r-md:10px;--r-sm:8px}
+[data-theme="midnight"],[data-theme="aurora"]{--r-lg:20px;--r-md:13px;--r-sm:9px}
+[data-theme="sunny"]{--r-lg:28px;--r-md:20px;--r-sm:14px;--font:ui-rounded,"SF Pro Rounded","Nunito",ui-sans-serif,-apple-system,system-ui,sans-serif}
+[data-theme="forest"]{--r-lg:26px;--r-md:18px;--r-sm:12px;--font:ui-rounded,"SF Pro Rounded","Nunito",ui-sans-serif,-apple-system,system-ui,sans-serif}
+/* Palette picker */
+.swatches{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.swatch{position:relative;text-align:left;background:var(--bg);color:var(--text);border:1.5px solid var(--line);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:2px;font-family:var(--font)}
+.swatch[aria-pressed="true"]{border-color:var(--link);box-shadow:0 0 0 1px var(--accent)}
+.sw-prev{display:flex;align-items:center;gap:6px;background:var(--surface);border-radius:10px;padding:9px;margin-bottom:6px}
+.sw-prev i{display:block;height:8px;border-radius:99px}
+.sw-acc{width:22px;background:var(--accent)}
+.sw-l1{flex:1;background:var(--text);opacity:.75}
+.sw-l2{width:14px;background:var(--muted)}
+.sw-name{font-weight:700;font-size:14px}
+.sw-sub{font-size:12px;color:var(--muted)}
+.sw-check{position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:11px;display:none;place-items:center}
+.swatch[aria-pressed="true"] .sw-check{display:grid}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:16px;line-height:1.5}
 body{padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
@@ -62,24 +125,25 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* Context chips */
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:26px}
 .chip{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:14px;color:var(--muted)}
-.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--link);color:var(--accent-ink);font-weight:600}
 
 /* Record */
 .stage{display:flex;flex-direction:column;align-items:center;margin:8px 0 30px}
 .rec-btn{width:132px;height:132px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);
   display:grid;place-items:center;font-weight:700;font-size:16px;transition:transform .15s, background .2s}
 .rec-btn:active{transform:scale(.96)}
+.rec-btn{box-shadow:0 12px 40px -10px color-mix(in srgb,var(--accent) 60%,transparent),inset 0 0 0 1px rgba(255,255,255,.10)}
 .rec-btn.live{background:var(--rec);animation:breathe 2.4s ease-in-out infinite}
 @keyframes breathe{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--rec) 40%,transparent)}50%{box-shadow:0 0 0 18px transparent}}
 .timer{margin-top:16px;font-size:30px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:.02em}
 .hint{color:var(--muted);font-size:14px;text-align:center;margin-top:6px;max-width:320px}
-.link-btn{background:none;border:0;color:var(--accent);font-size:14px;margin-top:14px;padding:6px}
+.link-btn{background:none;border:0;color:var(--link);font-size:14px;margin-top:14px;padding:6px}
 
 /* Cards */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px;margin-bottom:14px}
-.card.good{border-left:4px solid var(--good)}
-.card.fix{border-left:4px solid var(--fix)}
-.card.note{border-left:4px solid var(--note)}
+.card.good{background:color-mix(in srgb,var(--good) 8%,var(--surface))}
+.card.fix{background:color-mix(in srgb,var(--fix) 8%,var(--surface))}
+.card.note{background:color-mix(in srgb,var(--note) 8%,var(--surface))}
 .card h2.good{color:var(--good)} .card h2.fix{color:var(--fix)} .card h2.note{color:var(--note)}
 .card ul{margin:0;padding-left:18px} .card li{margin-bottom:8px}
 .card p{margin:0 0 8px}
@@ -98,7 +162,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 
 /* Status */
 .status{text-align:center;padding:40px 10px}
-.spinner{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);margin:0 auto 16px;animation:spin 1s linear infinite}
+.spinner{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--link);margin:0 auto 16px;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .error{background:color-mix(in srgb,var(--rec) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--rec) 45%,var(--line));border-radius:var(--r-md);padding:14px;margin-bottom:14px;font-size:14px;word-break:break-word}
 
@@ -109,7 +173,7 @@ textarea{min-height:72px;resize:vertical}
 .btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:12px 18px;font-weight:700}
 .btn.ghost{background:var(--surface2);color:var(--text);font-weight:600}
 .row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
-.back{background:none;border:0;color:var(--accent);padding:6px 0;margin-bottom:10px;font-size:15px}
+.back{background:none;border:0;color:var(--link);padding:6px 0;margin-bottom:10px;font-size:15px}
 .small{font-size:13px;color:var(--muted)}
 .badge{display:inline-block;font-size:12px;font-weight:700;color:var(--fix);border:1px solid color-mix(in srgb,var(--fix) 55%,var(--line));border-radius:999px;padding:1px 9px;margin-bottom:6px}
 .pat{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:15px}
@@ -118,11 +182,15 @@ textarea{min-height:72px;resize:vertical}
 .sample-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .betterrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 4px}
 .betterrow .better{margin:0}
-.listen{flex:none;background:var(--surface2);border:1px solid var(--line);color:var(--accent);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
+.listen{flex:none;background:var(--surface2);border:1px solid var(--line);color:var(--link);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
 .stars{list-style:none;padding-left:0!important}
 .stars li::before{content:"\2605";color:var(--good);margin-right:8px}
 .practice li{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 .rv-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+#result:not(.hidden){display:flex;flex-direction:column;min-height:calc(100svh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 70px)}
+#result .stage-step{flex:1}
+.chg-old{text-decoration:line-through;text-decoration-color:var(--fix);color:var(--fix)}
+.chg-new{background:color-mix(in srgb,var(--good) 22%,transparent);border-radius:6px;box-shadow:0 0 0 2px color-mix(in srgb,var(--good) 22%,transparent)}
 .stepbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .stepbar .back{margin:0}
 .dots{display:flex;gap:6px;align-items:center}
@@ -137,7 +205,8 @@ textarea{min-height:72px;resize:vertical}
 .stepnav{position:sticky;bottom:0;display:flex;gap:10px;padding:14px 0 calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,var(--bg) 72%,transparent)}
 .stepnav .btn{padding:15px 18px;font-size:16px}
 .stepnav .btn:last-child{flex:1}
-.bigrow{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:4px 0 10px}
+.bigrow{display:flex;flex-direction:column;align-items:flex-start;gap:12px;margin:4px 0 14px}
+.bigrow .listen{padding:9px 18px;font-size:15px}
 .big{font-size:24px;line-height:1.3;font-weight:700;letter-spacing:-.01em}
 .sayline{margin-bottom:10px;font-size:15px}
 .tip{color:var(--muted);font-size:14px;max-width:320px;margin:14px auto 0}
@@ -147,7 +216,7 @@ textarea{min-height:72px;resize:vertical}
 </head>
 <body>
 <div class="wrap">
-  <header>
+  <header id="mainHeader">
     <h1 id="title">Session Coach</h1>
     <button class="icon-btn" id="gearBtn" aria-label="Settings">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
@@ -204,13 +273,15 @@ textarea{min-height:72px;resize:vertical}
     </div>
     <div class="card">
       <h2>Look and feel</h2>
-      <label for="theme">Colors</label>
-      <select id="theme"><option value="slate">Slate (cool, low glare)</option><option value="warm">Warm paper and green</option></select>
+      <label>Palette</label>
+      <div class="swatches" id="swatches"></div>
+      <label for="mode">Appearance</label>
+      <select id="mode"><option value="system">Match my iPhone</option><option value="light">Light</option><option value="dark">Dark</option></select>
       <label for="style">Coach tone</label>
       <select id="style"><option value="friendly">Friendly and encouraging</option><option value="direct">Direct and concise</option><option value="tough">Demanding coach</option></select>
       <label for="speed">Analysis speed</label>
       <select id="speed"><option value="fast">Fast (less thinking)</option><option value="balanced">Balanced</option><option value="deep">Deep (slower, most careful)</option></select>
-      <p class="small">Colors follow your iPhone light or dark mode. Speed applies to Gemini 2.5 Flash models.</p>
+      <p class="small">Speed applies to Gemini 2.5 Flash models.</p>
     </div>
     <div class="card">
       <h2>About you</h2>
@@ -247,11 +318,21 @@ textarea{min-height:72px;resize:vertical}
 <script>
 (function(){
   const $ = id => document.getElementById(id);
+  const THEMES=[["midnight","Midnight","Indigo on near-black"],["mono","Mono","Pure black and white"],["aurora","Aurora","Navy and violet"],["sunny","Sunny","Cream and yellow"],["ocean","Ocean","Teal on slate"],["forest","Forest","Paper and green"]];
+  function rawGet(k,d){ try{ const v=JSON.parse(localStorage.getItem(k)); return (v===null||v===undefined)?d:v; }catch(e){ return d; } }
+  function currentTheme(){ let t=rawGet("theme","midnight"); if(t==="slate") t="ocean"; if(t==="warm") t="forest"; return THEMES.some(x=>x[0]===t)?t:"midnight"; }
+  function currentScheme(){
+    const m=rawGet("mode","system"); if(m==="light"||m==="dark") return m;
+    return (window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";
+  }
   function applyTheme(){
-    let t="slate"; try{ t=JSON.parse(localStorage.getItem("theme"))||"slate"; }catch(e){}
-    document.documentElement.setAttribute("data-theme",t);
+    const r=document.documentElement, sc=currentScheme();
+    r.setAttribute("data-theme",currentTheme()); r.setAttribute("data-scheme",sc); r.style.colorScheme=sc;
+    const bg=getComputedStyle(r).getPropertyValue("--bg").trim(), m=document.getElementById("themeColor");
+    if(m&&bg) m.setAttribute("content",bg);
   }
   applyTheme();
+  try{ matchMedia("(prefers-color-scheme: dark)").addEventListener("change",applyTheme); }catch(e){}
   const CONTEXTS = ["Meeting","Call","Presentation","Solo practice"];
   const store = {
     get(k, d){ try{ const v = localStorage.getItem(k); return v===null? d : JSON.parse(v);}catch(e){return d;} },
@@ -292,7 +373,7 @@ textarea{min-height:72px;resize:vertical}
 
   // Views
   const views=["home","loading","errorView","result","settings","review"];
-  function show(v){ if(v==="loading") startTips(); else stopTips(); views.forEach(x=>$(x).classList.toggle("hidden",x!==v));
+  function show(v){ if(v==="loading") startTips(); else stopTips(); $("mainHeader").classList.toggle("hidden",v==="result"||v==="review"); views.forEach(x=>$(x).classList.toggle("hidden",x!==v));
     $("title").textContent = v==="home"?"Session Coach": v==="settings"?"Settings":"Session Coach";
     window.scrollTo(0,0); }
 
@@ -421,7 +502,7 @@ Return ONLY valid JSON with exactly these keys:
  "patterns": ["up to 3 repeated error patterns"],
  "sound_natural": [{"said":"a correct but awkward phrase","better":"a more natural version"}],
  "delivery": "pace, clarity, filler words (estimate how many and which), structure of the message",
- "memory_trick": {"error":"the most frequent error","trick":"a short mnemonic or easy trick to remember the fix"},
+ "memory_trick": {"error":"the most frequent error","trick":"a real mnemonic that links the fix to ${native} (cognates, sound-alikes or a vivid image). Never just spell the word or restate the rule"},
  "practice": ["3 sentences to say out loud tomorrow, using the corrected patterns"],
  "next_focus": "one single thing to work on in the next session"
 }
@@ -434,7 +515,7 @@ Return ONLY valid JSON with exactly these keys:
       const k=String(f.pattern_key||"").toLowerCase().trim();
       if(!k) return;
       const e=p[k]||{count:0};
-      e.count++; e.last=Date.now(); e.rule=f.rule||e.rule||""; e.example=f.better||e.example||"";
+      e.count++; e.last=Date.now(); e.rule=f.rule||e.rule||""; e.example=f.better||e.example||""; e.said=f.said||e.said||"";
       p[k]=e; f.seen=e.count;
     });
     store.set("pats",p);
@@ -442,16 +523,18 @@ Return ONLY valid JSON with exactly these keys:
   function renderPatterns(){
     const w=$("patWrap"); w.innerHTML="";
     const p=store.get("pats",{});
-    const ks=Object.keys(p).sort((a,b)=>p[b].count-p[a].count).slice(0,5);
+    const ks=Object.keys(p).filter(k=>p[k].count>=2).sort((a,b)=>p[b].count-p[a].count).slice(0,5);
     if(!ks.length) return;
     const box=el("div");
     ks.forEach(k=>{
       const r=el("div","pat");
-      r.appendChild(el("span",null,(p[k].example||k)));
+      const left=el("span"); left.appendChild(document.createTextNode(p[k].example||k));
+      if(p[k].said){ left.appendChild(el("br")); left.appendChild(el("span","small","instead of: "+p[k].said)); }
+      r.appendChild(left);
       r.appendChild(el("span",null,"×"+p[k].count+(p[k].reviews?"  \u2713"+(p[k].got||0)+"/"+p[k].reviews:"")));
       box.appendChild(r);
     });
-    w.appendChild(card("fix","Your recurring errors",box));
+    w.appendChild(card("fix","Errors that keep coming back",box));
   }
 
   async function analyze(blob,type){
@@ -521,6 +604,29 @@ Return ONLY valid JSON with exactly these keys:
   }
   function listenBtn(text){ const b=el("button","listen","\u25B6 Listen"); b.setAttribute("aria-label","Listen: "+text); b.onclick=()=>speak(text); return b; }
   function betterRow(text){ const r=el("div","betterrow"); r.appendChild(el("div","better",text)); r.appendChild(listenBtn(text)); return r; }
+
+  // Word-level diff to highlight only what changed
+  function nw(w){ return w.toLowerCase().replace(/[^\p{L}\p{N}']/gu,""); }
+  function wordDiff(a,b){
+    const A=a.split(/\s+/).filter(Boolean), B=b.split(/\s+/).filter(Boolean);
+    const m=A.length, n=B.length;
+    const dp=Array.from({length:m+1},()=>new Array(n+1).fill(0));
+    for(let i=m-1;i>=0;i--) for(let j=n-1;j>=0;j--) dp[i][j]= nw(A[i])===nw(B[j]) ? dp[i+1][j+1]+1 : Math.max(dp[i+1][j],dp[i][j+1]);
+    const ra=[], rb=[]; let i=0, j=0;
+    while(i<m&&j<n){
+      if(nw(A[i])===nw(B[j])){ ra.push([A[i++],0]); rb.push([B[j++],0]); }
+      else if(dp[i+1][j]>=dp[i][j+1]) ra.push([A[i++],1]);
+      else rb.push([B[j++],1]);
+    }
+    while(i<m) ra.push([A[i++],1]);
+    while(j<n) rb.push([B[j++],1]);
+    return {a:ra,b:rb};
+  }
+  function wordsFrag(parts,cls){
+    const f=document.createDocumentFragment();
+    parts.forEach((p,k)=>{ const sp=document.createElement("span"); if(p[1]) sp.className=cls; sp.textContent=p[0]; f.appendChild(sp); if(k<parts.length-1) f.appendChild(document.createTextNode(" ")); });
+    return f;
+  }
 
   // Result rendering
   function el(tag,cls,text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!==undefined) e.textContent=text; return e; }
@@ -632,8 +738,9 @@ Return ONLY valid JSON with exactly these keys:
       const c=el("div","card fix");
       c.appendChild(el("h2","fix","Fix "+(n+1)+" of "+fixes.length));
       if(f.seen>1) c.appendChild(el("div","badge","Seen "+f.seen+" times"));
-      const row=el("div","bigrow"); row.appendChild(el("div","big",f.better||"")); row.appendChild(listenBtn(f.better||"")); c.appendChild(row);
-      const sd=el("div","sayline"); sd.appendChild(el("span","small","You said: ")); sd.appendChild(el("span","said",f.said||"")); c.appendChild(sd);
+      const df=wordDiff(f.said||"",f.better||"");
+      const row=el("div","bigrow"); const big=el("div","big"); big.appendChild(wordsFrag(df.b,"chg-new")); row.appendChild(big); row.appendChild(listenBtn(f.better||"")); c.appendChild(row);
+      const sd=el("div","sayline"); sd.appendChild(el("span","small","You said: ")); const old=el("span"); old.appendChild(wordsFrag(df.a,"chg-old")); sd.appendChild(old); c.appendChild(sd);
       c.appendChild(el("p","rule",f.rule||""));
       c.appendChild(el("p","small","Listen, then say it out loud 3 times."));
       return c;
@@ -655,7 +762,7 @@ Return ONLY valid JSON with exactly these keys:
     if(d.delivery||d.memory_trick) steps.push(()=>{
       const w=el("div");
       if(d.delivery) w.appendChild(card("note","Delivery",el("p",null,d.delivery)));
-      if(d.memory_trick){ const b=el("div"); b.appendChild(el("p","rule",d.memory_trick.error||"")); b.appendChild(el("p",null,d.memory_trick.trick||"")); w.appendChild(card("good","Memory trick",b)); }
+      if(d.memory_trick){ const b=el("div"); b.appendChild(el("p","rule",d.memory_trick.error||"")); b.appendChild(el("p",null,d.memory_trick.trick||"")); w.appendChild(card("note","Memory trick",b)); }
       return w;
     });
 
@@ -827,12 +934,27 @@ Return ONLY valid JSON with exactly these keys:
   }
   window.addEventListener("hashchange",()=>{ if(!route()) show("home"); });
 
+  function renderSwatches(){
+    const w=$("swatches"); if(!w) return; w.innerHTML="";
+    const cur=currentTheme(), sc=currentScheme();
+    THEMES.forEach(([k,name,sub])=>{
+      const b=document.createElement("button");
+      b.className="swatch"; b.setAttribute("data-theme",k); b.setAttribute("data-scheme",sc);
+      b.setAttribute("aria-pressed",String(k===cur)); b.setAttribute("aria-label",name+" palette");
+      b.innerHTML='<span class="sw-prev"><i class="sw-acc"></i><i class="sw-l1"></i><i class="sw-l2"></i></span><span class="sw-name"></span><span class="sw-sub"></span><span class="sw-check">\u2713</span>';
+      b.querySelector(".sw-name").textContent=name; b.querySelector(".sw-sub").textContent=sub;
+      b.onclick=()=>{ store.set("theme",k); applyTheme(); renderSwatches(); };
+      w.appendChild(b);
+    });
+  }
+  $("mode").onchange=()=>{ store.set("mode",$("mode").value); applyTheme(); renderSwatches(); };
+
   // Settings
   function loadSettings(){
     $("apiKey").value=store.get("key",""); $("model").value=store.get("model","gemini-2.5-flash");
     $("lang").value=store.get("lang","Spanish"); $("meHint").value=store.get("meHint",""); $("focus").value=store.get("focus","");
     $("name").value=store.get("name",""); $("native").value=store.get("native","Spanish"); $("field").value=store.get("field","");
-    $("speed").value=store.get("speed","balanced"); $("theme").value=store.get("theme","slate"); $("style").value=store.get("style","friendly");
+    $("speed").value=store.get("speed","balanced"); $("mode").value=store.get("mode","system"); renderSwatches(); $("style").value=store.get("style","friendly");
     refreshSample();
     show("settings");
   }
@@ -841,7 +963,7 @@ Return ONLY valid JSON with exactly these keys:
   $("saveSet").onclick=()=>{
     store.set("key",$("apiKey").value.trim()); store.set("model",$("model").value.trim()||"gemini-2.5-flash");
     store.set("lang",$("lang").value); store.set("meHint",$("meHint").value.trim()); store.set("focus",$("focus").value.trim());
-    store.set("speed",$("speed").value); store.set("theme",$("theme").value); store.set("style",$("style").value); applyTheme();
+    store.set("speed",$("speed").value);  store.set("style",$("style").value); applyTheme();
     store.set("name",$("name").value.trim()); store.set("native",$("native").value.trim()||"Spanish"); store.set("field",$("field").value.trim());
     show("home");
   };
