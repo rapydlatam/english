@@ -93,6 +93,11 @@ textarea{min-height:72px;resize:vertical}
 .row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
 .back{background:none;border:0;color:var(--accent);padding:6px 0;margin-bottom:10px;font-size:15px}
 .small{font-size:13px;color:var(--muted)}
+.badge{display:inline-block;font-size:12px;font-weight:700;color:var(--fix);border:1px solid color-mix(in srgb,var(--fix) 55%,var(--line));border-radius:999px;padding:1px 9px;margin-bottom:6px}
+.pat{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:15px}
+.pat:first-of-type{border-top:0}
+.pat span:last-child{color:var(--fix);font-weight:700;white-space:nowrap}
+.sample-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 @media (prefers-reduced-motion: reduce){.rec-btn.live,.spinner{animation:none}}
 </style>
 </head>
@@ -115,6 +120,7 @@ textarea{min-height:72px;resize:vertical}
       <button class="link-btn" id="uploadBtn">Or upload a Voice Memo</button>
       <input type="file" id="fileIn" accept="audio/*" class="hidden">
     </div>
+    <div id="patWrap"></div>
     <div id="histWrap"></div>
   </main>
 
@@ -149,17 +155,33 @@ textarea{min-height:72px;resize:vertical}
       <p class="small">The key stays in this browser only. Do not share this page with the key saved on it.</p>
     </div>
     <div class="card">
-      <h2>Coaching</h2>
+      <h2>About you</h2>
+      <label for="name">Your name</label>
+      <input id="name" placeholder="e.g. Alexander">
+      <label for="native">Your native language</label>
+      <input id="native" placeholder="e.g. Spanish">
+      <label for="field">Your work field</label>
+      <input id="field" placeholder="e.g. fraud, AML and payments">
       <label for="lang">Explain corrections in</label>
-      <select id="lang"><option value="Spanish">Español</option><option value="English">English</option></select>
-      <label for="meHint">How to recognize you in a meeting (optional)</label>
-      <textarea id="meHint" placeholder="e.g. I'm Alexander, I lead the fraud monitoring topics and speak in English with the Israel team."></textarea>
+      <select id="lang"><option value="Spanish">Español</option><option value="English">English</option><option value="Portuguese">Português</option></select>
       <label for="focus">Current focus (optional)</label>
       <input id="focus" placeholder="e.g. prepositions, past tense, filler words">
+    </div>
+    <div class="card">
+      <h2>Your voice</h2>
+      <p class="small">Record 15 seconds of yourself talking. The coach uses it to find you among other speakers in meetings.</p>
+      <div class="sample-row">
+        <button class="btn ghost" id="sampleBtn">Record voice sample</button>
+        <button class="btn ghost hidden" id="sampleDel">Remove</button>
+        <span class="small" id="sampleStatus"></span>
+      </div>
+      <label for="meHint">Extra clues to recognize you (optional)</label>
+      <textarea id="meHint" placeholder="e.g. People call me Alexander. I lead the fraud monitoring topics."></textarea>
     </div>
     <div class="row">
       <button class="btn" id="saveSet">Save</button>
       <button class="btn ghost" id="clearHist">Clear history</button>
+      <button class="btn ghost" id="clearPats">Reset patterns</button>
     </div>
   </section>
 </div>
@@ -283,40 +305,77 @@ textarea{min-height:72px;resize:vertical}
     return new Promise((res,rej)=>{ const r=new FileReader();
       r.onload=()=>res(String(r.result).split(",")[1]); r.onerror=()=>rej(new Error("Could not read the audio.")); r.readAsDataURL(blob); });
   }
-  function buildPrompt(){
+  function topKeys(){
+    const p=store.get("pats",{});
+    return Object.keys(p).sort((a,b)=>p[b].count-p[a].count).slice(0,15);
+  }
+  function buildPrompt(hasSample){
     const lang=store.get("lang","Spanish");
     const hint=store.get("meHint","");
     const focus=store.get("focus","");
-    return `You are a top English coach for a native Spanish speaker from Colombia who works professionally in fraud, AML and payments. The audio is a work session (type: ${ctx}).
+    const name=store.get("name","");
+    const native=store.get("native","Spanish");
+    const field=store.get("field","");
+    const keys=topKeys();
+    return `You are a top English coach for a native ${native} speaker${field?(" who works professionally in "+field):""}. The audio is a work session (type: ${ctx}).
 
-WHO TO COACH: only the user. ${hint?("How to recognize the user: "+hint):"If several people speak, coach the person who speaks the most."} Ignore other speakers except when needed as context.
+WHO TO COACH: only the user${name?(", named "+name):""}.
+${hasSample?"The FIRST audio clip is a reference recording of the user's voice. The SECOND audio clip is the session. Find the speaker in the session whose voice matches the reference and coach only that person.\n":""}${hint?("Extra clues: "+hint+"\n"):""}Other clues: when someone addresses the user by name, or the speaker who talks most. NEVER attribute other speakers' words or errors to the user. Every "said" quote must come from the coached speaker only. If you cannot tell with confidence who the user is, set coached_speaker.confidence to "low" and coach the most likely speaker.
 
 HOW TO LISTEN: judge what was literally said. Do not silently fix errors. Only report errors you actually heard; never invent quotes. If audio is unclear or the user speaks little English, say so in "summary".
-
-${focus?("CURRENT FOCUS: pay extra attention to "+focus+".\n"):""}
-Write all explanations in ${lang}. Keep the English examples in English. Be specific, warm, direct and practical. Prioritize the few things with the biggest impact instead of listing everything.
+Focus on spoken English: awkward phrasing translated from ${native}, filler words, structure of the message, and prepositions/verb patterns. The user is already near fluent, so skip basic grammar.
+${focus?("CURRENT FOCUS: pay extra attention to "+focus+".\n"):""}${keys.length?("KNOWN RECURRING PATTERN KEYS: "+keys.join(", ")+". If a fix is the same underlying error as one of these, reuse that exact key.\n"):""}
+Write all explanations in ${lang}. Keep English examples in English. Be specific, warm and direct. Keep rules to ONE short line in pattern style (e.g. "reach out TO / tell SIN to"), no long grammar theory.
 
 Return ONLY valid JSON with exactly these keys:
 {
  "title": "short title of the session topic (max 6 words)",
+ "coached_speaker": {"who":"who you coached (name or short voice description)","confidence":"high|medium|low","evidence":"one sentence on how you identified them"},
  "summary": "2 sentences: what the session was about and the overall impression of the user's English",
  "went_well": ["3 specific things done well, quoting phrases or behaviors you heard"],
- "fixes": [{"said":"what the user said","better":"how it should sound","rule":"one-line rule in ${lang}"}],
- "patterns": ["up to 3 repeated error patterns (prepositions, tenses, false friends, word order...)"],
+ "fixes": [{"said":"what the user said","better":"how it should sound","rule":"one-line rule in ${lang}","pattern_key":"short-kebab-case key for the underlying error"}],
+ "patterns": ["up to 3 repeated error patterns"],
  "sound_natural": [{"said":"a correct but awkward phrase","better":"a more natural version"}],
  "delivery": "pace, clarity, filler words (estimate how many and which), structure of the message",
  "memory_trick": {"error":"the most frequent error","trick":"a short mnemonic or easy trick to remember the fix"},
  "practice": ["3 sentences to say out loud tomorrow, using the corrected patterns"],
  "next_focus": "one single thing to work on in the next session"
 }
-"fixes" must contain at most 5 items, ordered by importance.`;
+"fixes" must contain at most 3 items, ordered by importance.`;
+  }
+
+  function updatePatterns(d){
+    const p=store.get("pats",{});
+    (d.fixes||[]).forEach(f=>{
+      const k=String(f.pattern_key||"").toLowerCase().trim();
+      if(!k) return;
+      const e=p[k]||{count:0};
+      e.count++; e.last=Date.now(); e.rule=f.rule||e.rule||""; e.example=f.better||e.example||"";
+      p[k]=e; f.seen=e.count;
+    });
+    store.set("pats",p);
+  }
+  function renderPatterns(){
+    const w=$("patWrap"); w.innerHTML="";
+    const p=store.get("pats",{});
+    const ks=Object.keys(p).sort((a,b)=>p[b].count-p[a].count).slice(0,5);
+    if(!ks.length) return;
+    const box=el("div");
+    ks.forEach(k=>{
+      const r=el("div","pat");
+      r.appendChild(el("span",null,(p[k].example||k)));
+      r.appendChild(el("span",null,"×"+p[k].count));
+      box.appendChild(r);
+    });
+    w.appendChild(card("fix","Your recurring errors",box));
   }
 
   async function analyze(blob,type){
     pendingAudio={blob,type};
     show("loading");
     const key=store.get("key",""), model=store.get("model","gemini-2.5-flash");
-    if(blob.size>18*1024*1024){ showError("This audio is larger than 18 MB, which is the limit for a direct upload. Trim it or record a shorter session.", pendingAudio); return; }
+    const sample=store.get("sample",null);
+    if(blob.size+(sample?sample.size||0:0)>14*1024*1024){ showError("This audio is larger than 14 MB, which is the limit for a direct upload. Trim it or record a shorter session.", pendingAudio); return; }
     try{
       $("loadMsg").textContent="Preparing audio…";
       const data=await toBase64(blob);
@@ -326,7 +385,12 @@ Return ONLY valid JSON with exactly these keys:
         method:"POST",
         headers:{"Content-Type":"application/json","x-goog-api-key":key},
         body:JSON.stringify({
-          contents:[{parts:[{text:buildPrompt()},{inline_data:{mime_type:type,data}}]}],
+          contents:[{parts:(function(){
+            const parts=[{text:buildPrompt(!!sample)}];
+            if(sample){ parts.push({text:"Reference voice sample of the user:"}); parts.push({inline_data:{mime_type:sample.type,data:sample.data}}); parts.push({text:"Session audio:"}); }
+            parts.push({inline_data:{mime_type:type,data}});
+            return parts;
+          })()}],
           generationConfig:{responseMimeType:"application/json",temperature:0.4}
         })
       });
@@ -338,10 +402,11 @@ Return ONLY valid JSON with exactly these keys:
       let parsed;
       try{ parsed=JSON.parse(text.replace(/^```json|```$/g,"").trim()); }
       catch(e){ throw new Error("The feedback came back in an unexpected format. Try again."); }
+      updatePatterns(parsed);
       const ts=Date.now();
       const h=history(); h.unshift({ts,ctx,data:parsed}); store.set("hist",h.slice(0,40));
       pendingAudio=null;
-      renderResult(parsed,ctx,ts); renderHistory();
+      renderResult(parsed,ctx,ts); renderHistory(); renderPatterns();
     }catch(e){
       let m=e.message||"Something went wrong.";
       if(/Failed to fetch|Load failed|NetworkError/i.test(m)) m="Could not reach Gemini. Check your connection and try again.";
@@ -372,12 +437,20 @@ Return ONLY valid JSON with exactly these keys:
     head.appendChild(el("p",null,d.summary||""));
     r.appendChild(head);
 
+    if(d.coached_speaker&&d.coached_speaker.who){
+      const cs=d.coached_speaker, low=String(cs.confidence).toLowerCase()==="low";
+      const b=el("div"); b.appendChild(el("p",null,cs.who));
+      if(cs.evidence) b.appendChild(el("p","rule",cs.evidence));
+      if(low) b.appendChild(el("p",null,"Low confidence: check that this was you. Recording a voice sample in Settings improves this."));
+      r.appendChild(card(low?"fix":"note",low?"Check the speaker":"Coached speaker",b));
+    }
     if(d.went_well&&d.went_well.length) r.appendChild(card("good","What went well",list(d.went_well)));
 
     if(d.fixes&&d.fixes.length){
       const box=el("div");
       d.fixes.forEach(f=>{
         const it=el("div","fixitem");
+        if(f.seen>1) it.appendChild(el("div","badge","Seen "+f.seen+" times"));
         it.appendChild(el("div","said",f.said||""));
         it.appendChild(el("div","better",f.better||""));
         it.appendChild(el("div","rule",f.rule||""));
@@ -409,7 +482,13 @@ Return ONLY valid JSON with exactly these keys:
     const copy=el("button","btn ghost","Copy feedback");
     copy.onclick=()=>{ navigator.clipboard&&navigator.clipboard.writeText(toText(d,context)).then(()=>{copy.textContent="Copied";setTimeout(()=>copy.textContent="Copy feedback",1500);}); };
     row.appendChild(copy);
+    if(d.fixes&&d.fixes.length){
+      const rem=el("button","btn","Add review reminders");
+      rem.onclick=()=>addReminders(d);
+      row.appendChild(rem);
+    }
     r.appendChild(row);
+    if(d.fixes&&d.fixes.length) r.appendChild(el("p","small","Adds 4 calendar alerts: today, +1, +3 and +7 days."));
     show("result");
   }
   function toText(d,context){
@@ -421,10 +500,73 @@ Return ONLY valid JSON with exactly these keys:
     return L.join("\n");
   }
 
+  // Reminders (.ics)
+  function icsDate(dt){ const p=n=>String(n).padStart(2,"0"); return dt.getFullYear()+p(dt.getMonth()+1)+p(dt.getDate())+"T"+p(dt.getHours())+p(dt.getMinutes())+"00"; }
+  function icsEsc(t){ return String(t).replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\n/g,"\\n"); }
+  function buildICS(d){
+    const fixes=(d.fixes||[]).slice(0,3); if(!fixes.length) return "";
+    let body=fixes.map(f=>f.said+" -> "+f.better+" ("+f.rule+")").join("\n");
+    if(d.practice&&d.practice[0]) body+="\nSay it out loud: "+d.practice[0];
+    const now=new Date(), slots=[];
+    slots.push(new Date(now.getTime()+3*3600*1000));
+    [1,3,7].forEach(n=>{ const t=new Date(now); t.setDate(t.getDate()+n); t.setHours(10,0,0,0); slots.push(t); });
+    const stamp=now.toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";
+    const L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Session Coach//EN"];
+    slots.forEach((t,i)=>{
+      const end=new Date(t.getTime()+15*60*1000);
+      L.push("BEGIN:VEVENT","UID:coach-"+now.getTime()+"-"+i+"@session-coach","DTSTAMP:"+stamp,
+        "DTSTART:"+icsDate(t),"DTEND:"+icsDate(end),
+        "SUMMARY:"+icsEsc("English review: "+fixes.length+" corrections"),
+        "DESCRIPTION:"+icsEsc(body),
+        "BEGIN:VALARM","TRIGGER:PT0M","ACTION:DISPLAY","DESCRIPTION:English review","END:VALARM","END:VEVENT");
+    });
+    L.push("END:VCALENDAR");
+    return L.join("\r\n");
+  }
+  async function addReminders(d){
+    const ics=buildICS(d); if(!ics) return;
+    const file=new File([ics],"english-review.ics",{type:"text/calendar"});
+    try{
+      if(navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file]}); return; }
+    }catch(e){ if(e&&e.name==="AbortError") return; }
+    window.location.href="data:text/calendar;charset=utf-8,"+encodeURIComponent(ics);
+  }
+
+  // Voice sample
+  async function recordSample(){
+    const btn=$("sampleBtn");
+    let st;
+    try{ st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}}); }
+    catch(e){ $("sampleStatus").textContent="Microphone blocked."; return; }
+    const m=pickMime(); const ch=[];
+    let rec; try{ rec=new MediaRecorder(st,m?{mimeType:m,audioBitsPerSecond:32000}:{audioBitsPerSecond:32000}); }catch(e){ rec=new MediaRecorder(st); }
+    rec.ondataavailable=e=>{ if(e.data&&e.data.size) ch.push(e.data); };
+    rec.onstop=async()=>{
+      st.getTracks().forEach(t=>t.stop());
+      const type=(rec.mimeType||m||"audio/mp4").split(";")[0];
+      const blob=new Blob(ch,{type});
+      const data=await toBase64(blob);
+      store.set("sample",{data,type,size:blob.size});
+      btn.disabled=false; btn.textContent="Record voice sample"; refreshSample();
+    };
+    rec.start(1000); btn.disabled=true;
+    let left=15; btn.textContent="Speak now… "+left;
+    const iv=setInterval(()=>{ left--; btn.textContent="Speak now… "+left; if(left<=0){ clearInterval(iv); rec.stop(); } },1000);
+  }
+  function refreshSample(){
+    const has=!!store.get("sample",null);
+    $("sampleStatus").textContent=has?"Voice sample saved":"No sample yet";
+    $("sampleDel").classList.toggle("hidden",!has);
+  }
+  $("sampleBtn").onclick=recordSample;
+  $("sampleDel").onclick=()=>{ store.set("sample",null); refreshSample(); };
+
   // Settings
   function loadSettings(){
     $("apiKey").value=store.get("key",""); $("model").value=store.get("model","gemini-2.5-flash");
     $("lang").value=store.get("lang","Spanish"); $("meHint").value=store.get("meHint",""); $("focus").value=store.get("focus","");
+    $("name").value=store.get("name",""); $("native").value=store.get("native","Spanish"); $("field").value=store.get("field","");
+    refreshSample();
     show("settings");
   }
   $("gearBtn").onclick=loadSettings;
@@ -432,11 +574,13 @@ Return ONLY valid JSON with exactly these keys:
   $("saveSet").onclick=()=>{
     store.set("key",$("apiKey").value.trim()); store.set("model",$("model").value.trim()||"gemini-2.5-flash");
     store.set("lang",$("lang").value); store.set("meHint",$("meHint").value.trim()); store.set("focus",$("focus").value.trim());
+    store.set("name",$("name").value.trim()); store.set("native",$("native").value.trim()||"Spanish"); store.set("field",$("field").value.trim());
     show("home");
   };
   $("clearHist").onclick=()=>{ if(confirm("Delete all saved sessions?")){ store.set("hist",[]); renderHistory(); show("home"); } };
 
-  renderChips(); renderHistory(); show("home");
+  $("clearPats").onclick=()=>{ if(confirm("Reset the recurring-errors counter?")){ store.set("pats",{}); renderPatterns(); show("home"); } };
+  renderChips(); renderPatterns(); renderHistory(); show("home");
 })();
 </script>
 </body>
