@@ -335,6 +335,30 @@ button{transition:transform .14s cubic-bezier(.2,.8,.3,1),background-color .2s,o
 .hcount{font-size:13px;color:var(--muted)}
 .areas{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
 .areas .btn{padding:9px 14px;font-size:15px}
+/* Bigger type, pager, layout without tab bar */
+.small{font-size:14.5px}
+.rule{font-size:16px}
+.card h2{font-size:17px}
+.tag{font-size:14px;padding:3px 12px}
+.sayline{font-size:17px}
+.back{font-size:17px}
+.badge{font-size:13px}
+.hist-item span{font-size:14px}
+.big{font-size:28px}
+.pat{font-size:16px}
+.stat .lbl{font-size:14px}
+.bday{font-size:12px}
+.hint{font-size:15px}
+.link-btn{font-size:16px}
+.dot{width:8px;height:8px}
+.dot.on{width:24px}
+.stage-step{overflow:hidden;position:relative}
+.track{display:flex;width:100%;will-change:transform}
+.pane{flex:0 0 100%;min-width:0}
+body.no-tabbar{padding-bottom:0}
+.no-tabbar .wrap{padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
+.in-result .wrap{padding-bottom:0}
+#result:not(.hidden){min-height:calc(100svh - env(safe-area-inset-top,0px) - 18px)}
 </style>
 </head>
 <body>
@@ -582,6 +606,7 @@ button{transition:transform .14s cubic-bezier(.2,.8,.3,1),background-color .2s,o
     $("title").textContent=TITLES[v]||"Cadence";
     $("mainHeader").classList.toggle("no-logo",v!=="home"&&v!=="loading"&&v!=="errorView");
     $("tabbar").classList.toggle("hidden",TAB_VIEWS.indexOf(v)<0);
+    document.body.classList.toggle("no-tabbar",TAB_VIEWS.indexOf(v)<0); document.body.classList.toggle("in-result",v==="result");
     document.querySelectorAll("#tabbar button").forEach(b=>{ if(b.dataset.tab===v) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
     if(v==="home") renderTopic();
     if(v==="deck") renderDeck();
@@ -1044,24 +1069,77 @@ Return ONLY valid JSON with exactly these keys:
     nav.appendChild(backB); nav.appendChild(nextB);
     r.appendChild(bar); r.appendChild(stage); r.appendChild(nav);
 
-    let i=0;
-    function go(n,dir){
-      i=n; stage.innerHTML="";
-      const node=steps[n](); node.classList.add(dir<0?"in-left":"in-right"); stage.appendChild(node);
+    let i=0, busy=false, drag=null;
+    const last=steps.length-1;
+    function chrome(n){
       dotEls.forEach((e,k)=>{ e.className="dot"+(k===n?" on":(k<n?" done":"")); });
       backB.style.visibility=n?"visible":"hidden";
-      nextB.textContent=n===steps.length-1?"Done":"Next";
-      window.scrollTo(0,0);
+      nextB.textContent=n===last?"Done":"Next";
     }
-    nextB.onclick=()=>{ if(i>=steps.length-1) show("home"); else go(i+1,1); };
-    backB.onclick=()=>{ if(i>0) go(i-1,-1); };
-    let sx=0,sy=0;
-    stage.addEventListener("touchstart",e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
-    stage.addEventListener("touchend",e=>{
-      const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
-      if(Math.abs(dx)>60&&Math.abs(dy)<45){ if(dx<0) nextB.onclick(); else backB.onclick(); }
+    function pane(n){ const p=el("div","pane"); p.appendChild(steps[n]()); return p; }
+    function single(p){ stage.innerHTML=""; const t=el("div","track"); t.appendChild(p); stage.appendChild(t); return t; }
+    function width(){ return stage.clientWidth||0; }
+    function animOk(){ return !(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches); }
+    function go(n){ i=n; single(pane(n)); chrome(n); window.scrollTo(0,0); }
+    function two(dir,n){
+      const W=width(), cur=stage.querySelector(".pane"), pn=pane(n);
+      stage.innerHTML=""; const tr=el("div","track");
+      if(dir>0){ tr.appendChild(cur); tr.appendChild(pn); } else { tr.appendChild(pn); tr.appendChild(cur); }
+      stage.appendChild(tr);
+      const base=dir>0?0:-W; tr.style.transform="translateX("+base+"px)";
+      return {tr,pn,cur,base,W,dir,n};
+    }
+    function settle(o,commit){
+      busy=true;
+      const end=commit?(o.dir>0?-o.W:0):o.base;
+      o.tr.style.transition="transform .42s cubic-bezier(.22,1,.36,1)";
+      o.tr.style.transform="translateX("+end+"px)";
+      let fin=false;
+      const finish=()=>{ if(fin) return; fin=true; busy=false; if(commit){ i=o.n; single(o.pn); chrome(i); } else single(o.cur); window.scrollTo(0,0); };
+      o.tr.addEventListener("transitionend",ev=>{ if(ev.target===o.tr) finish(); });
+      setTimeout(finish,560);
+    }
+    function slide(n){
+      if(busy||n<0||n>last||n===i) return;
+      if(!width()||!animOk()){ go(n); return; }
+      const o=two(n>i?1:-1,n);
+      void o.tr.offsetWidth; chrome(n); settle(o,true);
+    }
+    nextB.onclick=()=>{ if(i>=last) show("home"); else slide(i+1); };
+    backB.onclick=()=>{ if(i>0) slide(i-1); };
+    stage.addEventListener("touchstart",e=>{
+      if(busy){ drag=null; return; }
+      const t=e.touches[0]; drag={x:t.clientX,y:t.clientY,t:Date.now(),o:null,edge:null,locked:false,dead:false};
     },{passive:true});
-    go(0,1);
+    stage.addEventListener("touchmove",e=>{
+      if(!drag||drag.dead||busy) return;
+      const t=e.touches[0], dx=t.clientX-drag.x, dy=t.clientY-drag.y, W=width();
+      if(!drag.locked){
+        if(Math.abs(dx)<8&&Math.abs(dy)<8) return;
+        if(Math.abs(dy)>Math.abs(dx)||!W||!animOk()){ drag.dead=true; return; }
+        drag.locked=true;
+        const dir=dx<0?1:-1, n=i+dir;
+        if(n>=0&&n<=last) drag.o=two(dir,n); else drag.edge=stage.querySelector(".track");
+      }
+      if(drag.o){
+        const o=drag.o, toward=o.dir>0?dx<0:dx>0, eff=toward?dx:dx*0.2;
+        const lo=o.dir>0?-W:-W-30, hi=o.dir>0?30:0;
+        o.tr.style.transform="translateX("+Math.max(lo,Math.min(hi,o.base+eff))+"px)";
+      }else if(drag.edge){ drag.edge.style.transform="translateX("+(dx*0.2)+"px)"; }
+    },{passive:true});
+    stage.addEventListener("touchend",e=>{
+      const d=drag; drag=null; if(!d||d.dead||!d.locked) return;
+      const t=e.changedTouches[0], dx=t.clientX-d.x, v=Math.abs(dx)/Math.max(1,Date.now()-d.t), W=width();
+      if(d.o){
+        const toward=d.o.dir>0?dx<0:dx>0;
+        settle(d.o,toward&&(Math.abs(dx)>W*0.28||(v>0.5&&Math.abs(dx)>24)));
+      }else if(d.edge){
+        const tr=d.edge; tr.style.transition="transform .35s cubic-bezier(.22,1,.36,1)"; tr.style.transform="translateX(0px)";
+        setTimeout(()=>{ tr.style.transition=""; },380);
+      }
+    },{passive:true});
+    stage.addEventListener("touchcancel",()=>{ const d=drag; drag=null; if(d&&d.o) settle(d.o,false); },{passive:true});
+    go(0);
     show("result");
   }
 
