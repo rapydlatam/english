@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12161c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Coach">
+<link rel="apple-touch-icon" id="touchIcon" href="">
+<title>Session Coach</title>
+<style>
+:root{
+  --bg:#12161c; --surface:#1a2029; --surface2:#222a35; --line:#2b3441;
+  --text:#e4e8ed; --muted:#8f9aa8;
+  --accent:#7cb7c9; --accent-ink:#0e1a1f;
+  --good:#93c2a2; --fix:#d9a37c; --note:#a9a6d6;
+  --rec:#d98c8c;
+  --r-lg:22px; --r-md:14px; --r-sm:9px;
+  --font: "Manrope", ui-sans-serif, -apple-system, "SF Pro Text", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f3f5f7; --surface:#ffffff; --surface2:#e9edf1; --line:#d9dfe6;
+    --text:#1d2530; --muted:#667385;
+    --accent:#2f7f95; --accent-ink:#ffffff;
+    --good:#3e8a5a; --fix:#a8672f; --note:#5d59a8; --rec:#b85c5c;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:16px;line-height:1.5}
+body{padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+.wrap{max-width:560px;margin:0 auto;padding:18px 18px 48px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+h1{font-size:22px;font-weight:700;margin:0;letter-spacing:-.01em}
+h2{font-size:15px;font-weight:700;margin:0 0 10px}
+button{font:inherit;color:inherit;cursor:pointer}
+.icon-btn{background:var(--surface);border:1px solid var(--line);border-radius:12px;width:42px;height:42px;display:grid;place-items:center}
+.icon-btn svg{width:20px;height:20px;stroke:var(--muted);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.hidden{display:none!important}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Context chips */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:26px}
+.chip{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:14px;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+
+/* Record */
+.stage{display:flex;flex-direction:column;align-items:center;margin:8px 0 30px}
+.rec-btn{width:132px;height:132px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);
+  display:grid;place-items:center;font-weight:700;font-size:16px;transition:transform .15s, background .2s}
+.rec-btn:active{transform:scale(.96)}
+.rec-btn.live{background:var(--rec);animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--rec) 40%,transparent)}50%{box-shadow:0 0 0 18px transparent}}
+.timer{margin-top:16px;font-size:30px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.hint{color:var(--muted);font-size:14px;text-align:center;margin-top:6px;max-width:320px}
+.link-btn{background:none;border:0;color:var(--accent);font-size:14px;margin-top:14px;padding:6px}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px;margin-bottom:14px}
+.card.good{border-left:4px solid var(--good)}
+.card.fix{border-left:4px solid var(--fix)}
+.card.note{border-left:4px solid var(--note)}
+.card h2.good{color:var(--good)} .card h2.fix{color:var(--fix)} .card h2.note{color:var(--note)}
+.card ul{margin:0;padding-left:18px} .card li{margin-bottom:8px}
+.card p{margin:0 0 8px}
+.fixitem{padding:12px 0;border-top:1px solid var(--line)}
+.fixitem:first-of-type{border-top:0;padding-top:0}
+.said{color:var(--muted);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--fix) 70%,transparent)}
+.better{font-weight:600;margin:2px 0 4px}
+.rule{font-size:14px;color:var(--muted)}
+.practice li{margin-bottom:10px}
+
+/* History */
+.hist-title{font-size:13px;color:var(--muted);margin:0 0 10px;font-weight:600}
+.hist-item{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px;margin-bottom:8px}
+.hist-item b{display:block;font-weight:600}
+.hist-item span{font-size:13px;color:var(--muted)}
+
+/* Status */
+.status{text-align:center;padding:40px 10px}
+.spinner{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);margin:0 auto 16px;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error{background:color-mix(in srgb,var(--rec) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--rec) 45%,var(--line));border-radius:var(--r-md);padding:14px;margin-bottom:14px;font-size:14px;word-break:break-word}
+
+/* Forms */
+label{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px;font-weight:600}
+input,select,textarea{width:100%;font:inherit;font-size:16px;color:var(--text);background:var(--surface2);border:1px solid var(--line);border-radius:var(--r-sm);padding:11px 12px}
+textarea{min-height:72px;resize:vertical}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:12px 18px;font-weight:700}
+.btn.ghost{background:var(--surface2);color:var(--text);font-weight:600}
+.row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.back{background:none;border:0;color:var(--accent);padding:6px 0;margin-bottom:10px;font-size:15px}
+.small{font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){.rec-btn.live,.spinner{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 id="title">Session Coach</h1>
+    <button class="icon-btn" id="gearBtn" aria-label="Settings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
+  </header>
+
+  <!-- HOME -->
+  <main id="home">
+    <div class="chips" id="chips" role="group" aria-label="Session type"></div>
+    <div class="stage">
+      <button class="rec-btn" id="recBtn" aria-label="Start session">Start</button>
+      <div class="timer hidden" id="timer">00:00</div>
+      <div class="hint" id="hint">Tap to start. Keep the screen on and the app open while recording.</div>
+      <button class="link-btn" id="uploadBtn">Or upload a Voice Memo</button>
+      <input type="file" id="fileIn" accept="audio/*" class="hidden">
+    </div>
+    <div id="histWrap"></div>
+  </main>
+
+  <!-- LOADING -->
+  <section id="loading" class="status hidden">
+    <div class="spinner"></div>
+    <p id="loadMsg">Listening to your session…</p>
+    <p class="small">Long sessions can take a minute or two.</p>
+  </section>
+
+  <!-- ERROR -->
+  <section id="errorView" class="hidden">
+    <div class="error" id="errMsg"></div>
+    <div class="row">
+      <button class="btn" id="retryBtn">Try again</button>
+      <button class="btn ghost" id="errBack">Back</button>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section id="result" class="hidden"></section>
+
+  <!-- SETTINGS -->
+  <section id="settings" class="hidden">
+    <button class="back" id="setBack">‹ Back</button>
+    <div class="card">
+      <h2>Gemini</h2>
+      <label for="apiKey">API key</label>
+      <input id="apiKey" type="password" autocomplete="off" placeholder="Paste your Gemini API key">
+      <label for="model">Model</label>
+      <input id="model" value="gemini-2.5-flash">
+      <p class="small">The key stays in this browser only. Do not share this page with the key saved on it.</p>
+    </div>
+    <div class="card">
+      <h2>Coaching</h2>
+      <label for="lang">Explain corrections in</label>
+      <select id="lang"><option value="Spanish">Español</option><option value="English">English</option></select>
+      <label for="meHint">How to recognize you in a meeting (optional)</label>
+      <textarea id="meHint" placeholder="e.g. I'm Alexander, I lead the fraud monitoring topics and speak in English with the Israel team."></textarea>
+      <label for="focus">Current focus (optional)</label>
+      <input id="focus" placeholder="e.g. prepositions, past tense, filler words">
+    </div>
+    <div class="row">
+      <button class="btn" id="saveSet">Save</button>
+      <button class="btn ghost" id="clearHist">Clear history</button>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const CONTEXTS = ["Meeting","Call","Presentation","Solo practice"];
+  const store = {
+    get(k, d){ try{ const v = localStorage.getItem(k); return v===null? d : JSON.parse(v);}catch(e){return d;} },
+    set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+  };
+  let ctx = store.get("ctx","Meeting");
+  let recorder=null, stream=null, chunks=[], tick=null, startTs=0, wakeLock=null, mime="";
+  let pendingAudio=null; // {blob, mimeType}
+
+  // Icon for Add to Home Screen
+  (function(){
+    const c=document.createElement("canvas"); c.width=c.height=180;
+    const g=c.getContext("2d");
+    g.fillStyle="#12161c"; g.fillRect(0,0,180,180);
+    g.fillStyle="#7cb7c9"; g.beginPath(); g.arc(90,90,46,0,Math.PI*2); g.fill();
+    g.fillStyle="#12161c"; g.beginPath(); g.arc(90,90,16,0,Math.PI*2); g.fill();
+    $("touchIcon").href=c.toDataURL("image/png");
+  })();
+
+  // Views
+  const views=["home","loading","errorView","result","settings"];
+  function show(v){ views.forEach(x=>$(x).classList.toggle("hidden",x!==v));
+    $("title").textContent = v==="home"?"Session Coach": v==="settings"?"Settings":"Session Coach";
+    window.scrollTo(0,0); }
+
+  // Chips
+  function renderChips(){
+    $("chips").innerHTML="";
+    CONTEXTS.forEach(c=>{
+      const b=document.createElement("button");
+      b.className="chip"; b.textContent=c; b.setAttribute("aria-pressed", String(c===ctx));
+      b.onclick=()=>{ ctx=c; store.set("ctx",c); renderChips(); };
+      $("chips").appendChild(b);
+    });
+  }
+
+  // History
+  function history(){ return store.get("hist",[]); }
+  function renderHistory(){
+    const h=history(); const w=$("histWrap"); w.innerHTML="";
+    if(!h.length) return;
+    const t=document.createElement("p"); t.className="hist-title"; t.textContent="Past sessions"; w.appendChild(t);
+    h.forEach((it,i)=>{
+      const b=document.createElement("button"); b.className="hist-item";
+      const d=new Date(it.ts);
+      b.innerHTML="<b></b><span></span>";
+      b.querySelector("b").textContent=it.data.title||"Session";
+      b.querySelector("span").textContent=it.ctx+" · "+d.toLocaleDateString(undefined,{month:"short",day:"numeric"})+" · "+d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
+      b.onclick=()=>renderResult(it.data, it.ctx, it.ts);
+      w.appendChild(b);
+    });
+  }
+
+  // Recording
+  function pickMime(){
+    const opts=["audio/mp4","audio/webm;codecs=opus","audio/webm"];
+    return opts.find(t=>window.MediaRecorder && MediaRecorder.isTypeSupported(t))||"";
+  }
+  function fmt(s){ const m=Math.floor(s/60), r=s%60; return String(m).padStart(2,"0")+":"+String(r).padStart(2,"0"); }
+
+  async function startRec(){
+    if(!store.get("key","")){ show("settings"); loadSettings(); return; }
+    try{
+      stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
+    }catch(e){ showError("Microphone access was blocked. In iPhone Settings > Safari (or the app) allow the microphone, then try again.", null); return; }
+    mime=pickMime(); chunks=[];
+    try{ recorder=new MediaRecorder(stream, mime?{mimeType:mime,audioBitsPerSecond:32000}:{audioBitsPerSecond:32000}); }
+    catch(e){ recorder=new MediaRecorder(stream); }
+    recorder.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
+    recorder.onstop=onStop;
+    recorder.start(1000);
+    try{ if(navigator.wakeLock) wakeLock=await navigator.wakeLock.request("screen"); }catch(e){}
+    startTs=Date.now();
+    $("recBtn").classList.add("live"); $("recBtn").textContent="Stop";
+    $("recBtn").setAttribute("aria-label","Stop and get feedback");
+    $("timer").classList.remove("hidden"); $("timer").textContent="00:00";
+    $("hint").textContent="Recording. Tap Stop when the session ends.";
+    tick=setInterval(()=>{ $("timer").textContent=fmt(Math.floor((Date.now()-startTs)/1000)); },500);
+  }
+  function stopRec(){ if(recorder&&recorder.state!=="inactive") recorder.stop(); }
+  function cleanupRec(){
+    clearInterval(tick);
+    if(stream) stream.getTracks().forEach(t=>t.stop());
+    try{ if(wakeLock) wakeLock.release(); }catch(e){}
+    $("recBtn").classList.remove("live"); $("recBtn").textContent="Start";
+    $("recBtn").setAttribute("aria-label","Start session");
+    $("timer").classList.add("hidden");
+    $("hint").textContent="Tap to start. Keep the screen on and the app open while recording.";
+  }
+  function onStop(){
+    const secs=Math.floor((Date.now()-startTs)/1000);
+    cleanupRec();
+    const type=(recorder.mimeType||mime||"audio/mp4").split(";")[0];
+    const blob=new Blob(chunks,{type});
+    if(secs<5 || blob.size<2000){ showError("That recording was too short to coach. Try again with at least 20 seconds of speech.", null); return; }
+    analyze(blob,type);
+  }
+  $("recBtn").onclick=()=>{ (recorder&&recorder.state==="recording")?stopRec():startRec(); };
+
+  // Upload
+  $("uploadBtn").onclick=()=>{
+    if(!store.get("key","")){ show("settings"); loadSettings(); return; }
+    $("fileIn").click();
+  };
+  $("fileIn").onchange=e=>{
+    const f=e.target.files[0]; e.target.value=""; if(!f) return;
+    let t=f.type||"";
+    if(!t||t==="audio/x-m4a"||t==="audio/m4a") t="audio/mp4";
+    analyze(f,t);
+  };
+
+  // Gemini
+  function toBase64(blob){
+    return new Promise((res,rej)=>{ const r=new FileReader();
+      r.onload=()=>res(String(r.result).split(",")[1]); r.onerror=()=>rej(new Error("Could not read the audio.")); r.readAsDataURL(blob); });
+  }
+  function buildPrompt(){
+    const lang=store.get("lang","Spanish");
+    const hint=store.get("meHint","");
+    const focus=store.get("focus","");
+    return `You are a top English coach for a native Spanish speaker from Colombia who works professionally in fraud, AML and payments. The audio is a work session (type: ${ctx}).
+
+WHO TO COACH: only the user. ${hint?("How to recognize the user: "+hint):"If several people speak, coach the person who speaks the most."} Ignore other speakers except when needed as context.
+
+HOW TO LISTEN: judge what was literally said. Do not silently fix errors. Only report errors you actually heard; never invent quotes. If audio is unclear or the user speaks little English, say so in "summary".
+
+${focus?("CURRENT FOCUS: pay extra attention to "+focus+".\n"):""}
+Write all explanations in ${lang}. Keep the English examples in English. Be specific, warm, direct and practical. Prioritize the few things with the biggest impact instead of listing everything.
+
+Return ONLY valid JSON with exactly these keys:
+{
+ "title": "short title of the session topic (max 6 words)",
+ "summary": "2 sentences: what the session was about and the overall impression of the user's English",
+ "went_well": ["3 specific things done well, quoting phrases or behaviors you heard"],
+ "fixes": [{"said":"what the user said","better":"how it should sound","rule":"one-line rule in ${lang}"}],
+ "patterns": ["up to 3 repeated error patterns (prepositions, tenses, false friends, word order...)"],
+ "sound_natural": [{"said":"a correct but awkward phrase","better":"a more natural version"}],
+ "delivery": "pace, clarity, filler words (estimate how many and which), structure of the message",
+ "memory_trick": {"error":"the most frequent error","trick":"a short mnemonic or easy trick to remember the fix"},
+ "practice": ["3 sentences to say out loud tomorrow, using the corrected patterns"],
+ "next_focus": "one single thing to work on in the next session"
+}
+"fixes" must contain at most 5 items, ordered by importance.`;
+  }
+
+  async function analyze(blob,type){
+    pendingAudio={blob,type};
+    show("loading");
+    const key=store.get("key",""), model=store.get("model","gemini-2.5-flash");
+    if(blob.size>18*1024*1024){ showError("This audio is larger than 18 MB, which is the limit for a direct upload. Trim it or record a shorter session.", pendingAudio); return; }
+    try{
+      $("loadMsg").textContent="Preparing audio…";
+      const data=await toBase64(blob);
+      $("loadMsg").textContent="Listening to your session…";
+      const url="https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent";
+      const resp=await fetch(url,{
+        method:"POST",
+        headers:{"Content-Type":"application/json","x-goog-api-key":key},
+        body:JSON.stringify({
+          contents:[{parts:[{text:buildPrompt()},{inline_data:{mime_type:type,data}}]}],
+          generationConfig:{responseMimeType:"application/json",temperature:0.4}
+        })
+      });
+      const json=await resp.json();
+      if(!resp.ok){ throw new Error((json.error&&json.error.message)||("Request failed ("+resp.status+")")); }
+      const cand=json.candidates&&json.candidates[0];
+      const text=cand&&cand.content&&cand.content.parts&&cand.content.parts.map(p=>p.text||"").join("");
+      if(!text) throw new Error("Gemini returned no feedback. The audio may be silent or unsupported.");
+      let parsed;
+      try{ parsed=JSON.parse(text.replace(/^```json|```$/g,"").trim()); }
+      catch(e){ throw new Error("The feedback came back in an unexpected format. Try again."); }
+      const ts=Date.now();
+      const h=history(); h.unshift({ts,ctx,data:parsed}); store.set("hist",h.slice(0,40));
+      pendingAudio=null;
+      renderResult(parsed,ctx,ts); renderHistory();
+    }catch(e){
+      let m=e.message||"Something went wrong.";
+      if(/Failed to fetch|Load failed|NetworkError/i.test(m)) m="Could not reach Gemini. Check your connection and try again.";
+      showError(m,pendingAudio);
+    }
+  }
+
+  function showError(msg,audio){
+    $("errMsg").textContent=msg;
+    $("retryBtn").classList.toggle("hidden",!audio);
+    show("errorView");
+  }
+  $("retryBtn").onclick=()=>{ if(pendingAudio) analyze(pendingAudio.blob,pendingAudio.type); };
+  $("errBack").onclick=()=>show("home");
+
+  // Result rendering
+  function el(tag,cls,text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!==undefined) e.textContent=text; return e; }
+  function card(cls,title,body){ const c=el("div","card "+cls); c.appendChild(el("h2",cls,title)); c.appendChild(body); return c; }
+  function list(items){ const ul=el("ul"); (items||[]).forEach(t=>ul.appendChild(el("li",null,t))); return ul; }
+
+  function renderResult(d,context,ts){
+    const r=$("result"); r.innerHTML="";
+    const back=el("button","back","‹ Back"); back.onclick=()=>show("home"); r.appendChild(back);
+    const head=el("div","card");
+    head.appendChild(el("h2",null,d.title||"Session"));
+    const date=new Date(ts||Date.now());
+    head.appendChild(el("p","small",context+" · "+date.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})));
+    head.appendChild(el("p",null,d.summary||""));
+    r.appendChild(head);
+
+    if(d.went_well&&d.went_well.length) r.appendChild(card("good","What went well",list(d.went_well)));
+
+    if(d.fixes&&d.fixes.length){
+      const box=el("div");
+      d.fixes.forEach(f=>{
+        const it=el("div","fixitem");
+        it.appendChild(el("div","said",f.said||""));
+        it.appendChild(el("div","better",f.better||""));
+        it.appendChild(el("div","rule",f.rule||""));
+        box.appendChild(it);
+      });
+      r.appendChild(card("fix","Fix these first",box));
+    }
+    if(d.patterns&&d.patterns.length) r.appendChild(card("fix","Patterns to watch",list(d.patterns)));
+
+    if(d.sound_natural&&d.sound_natural.length){
+      const box=el("div");
+      d.sound_natural.forEach(f=>{
+        const it=el("div","fixitem");
+        it.appendChild(el("div","said",f.said||""));
+        it.appendChild(el("div","better",f.better||""));
+        box.appendChild(it);
+      });
+      r.appendChild(card("note","Sound more natural",box));
+    }
+    if(d.delivery){ const p=el("p",null,d.delivery); r.appendChild(card("note","Delivery",p)); }
+    if(d.memory_trick){
+      const b=el("div"); b.appendChild(el("p","rule",d.memory_trick.error||"")); b.appendChild(el("p",null,d.memory_trick.trick||""));
+      r.appendChild(card("good","Memory trick",b));
+    }
+    if(d.practice&&d.practice.length){ const l=list(d.practice); l.className="practice"; r.appendChild(card("note","Say these out loud tomorrow",l)); }
+    if(d.next_focus){ r.appendChild(card("good","Next session",el("p",null,d.next_focus))); }
+
+    const row=el("div","row");
+    const copy=el("button","btn ghost","Copy feedback");
+    copy.onclick=()=>{ navigator.clipboard&&navigator.clipboard.writeText(toText(d,context)).then(()=>{copy.textContent="Copied";setTimeout(()=>copy.textContent="Copy feedback",1500);}); };
+    row.appendChild(copy);
+    r.appendChild(row);
+    show("result");
+  }
+  function toText(d,context){
+    const L=[]; L.push((d.title||"Session")+" ("+context+")"); L.push(d.summary||"");
+    if(d.went_well) L.push("\nWent well:\n- "+d.went_well.join("\n- "));
+    if(d.fixes) L.push("\nFix:\n"+d.fixes.map(f=>"- "+f.said+" -> "+f.better+" ("+f.rule+")").join("\n"));
+    if(d.practice) L.push("\nPractice:\n- "+d.practice.join("\n- "));
+    if(d.next_focus) L.push("\nNext: "+d.next_focus);
+    return L.join("\n");
+  }
+
+  // Settings
+  function loadSettings(){
+    $("apiKey").value=store.get("key",""); $("model").value=store.get("model","gemini-2.5-flash");
+    $("lang").value=store.get("lang","Spanish"); $("meHint").value=store.get("meHint",""); $("focus").value=store.get("focus","");
+    show("settings");
+  }
+  $("gearBtn").onclick=loadSettings;
+  $("setBack").onclick=()=>show("home");
+  $("saveSet").onclick=()=>{
+    store.set("key",$("apiKey").value.trim()); store.set("model",$("model").value.trim()||"gemini-2.5-flash");
+    store.set("lang",$("lang").value); store.set("meHint",$("meHint").value.trim()); store.set("focus",$("focus").value.trim());
+    show("home");
+  };
+  $("clearHist").onclick=()=>{ if(confirm("Delete all saved sessions?")){ store.set("hist",[]); renderHistory(); show("home"); } };
+
+  renderChips(); renderHistory(); show("home");
+})();
+</script>
+</body>
+</html>
